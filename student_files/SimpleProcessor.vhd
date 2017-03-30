@@ -175,11 +175,23 @@ begin
 	
 	--ControlUnit CU
 	CU: ControlUnit port map(clock=>clock, reset=>reset, status=>Data_Status, MFC=>MFC, IR=>Data_IR, RF_write=>RF_write, C_select=>C_select, B_select=>B_select, Y_select=>Y_select, ALU_op=>ALU_op, A_inv=>A_inv, B_inv=>B_inv, C_in=>C_in, MEM_read=>Mem_read, MEM_write=>Mem_write, MA_select=>MA_select, IR_enable=>IR_enable, PC_select=>PC_select, PC_enable=>PC_enable, INC_select=>INC_select, extend=>extend, Status_enable=>Status_enable);
-	
+
+	--MuxC
+	MuxC: Mux4Input3Bit(s=>C_select, input0=>Data_IR(12 downto 10), input1=>Data_IR(9 downto 7), input2=>"111", result=>Data_MuxC);
+
 	--RegisterFile RF
-	RF: RegisterFile8by16Bit port map(clock=>clock, reset=>reset, RF_write=>RF_write, AddressA=>Data_IR(15 downto 13), AddressB=>Data_IR(12 downto 10), AddressC=>Data_MuxC, InputC=>Data_RY, OutputA=>Data_RA, OutputB=>Data_RB);
+	RF: RegisterFile8by16Bit port map(clock=>clock, reset=>reset, RF_write=>RF_write, AddressA=>Data_IR(15 downto 13), AddressB=>Data_IR(12 downto 10), AddressC=>Data_MuxC, InputC=>Data_RY, OutputA=>Data_RFOutA, OutputB=>Data_RFOutB);
 	
+	--Reg to output RA
+	RAReg: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', Data_RFOutA, Data_RA);
 	
+	--Reg to output RB
+	RBReg: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', Data_RFOutB, Data_RB);
 	
+	clock   : in std_logic;
+			reset   : in std_logic;
+			enable  : in std_logic;
+			D		  : in std_logic_vector(15 downto 0);
+			Q		  : out std_logic_vector(15 downto 0)
 	
 end implementation;
