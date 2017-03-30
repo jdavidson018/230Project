@@ -173,26 +173,10 @@ begin
 	-- Connect processor components below
 	
 	--ControlUnit CU
-	CU: ControlUnit port map(clock=>clock, reset=>reset, status=>Data_Status, MFC=>MFC, IR=>Data_IR, RF_write=>, C_select=>, B_select=>, Y_select=>, ALU_op=>, A_inv=>, B_inv=>, C_in=>, MEM_read=>, MEM_write=>, MA_select=>, IR_enable=>, PC_select=>, PC_enable=>, INC_select=>, extend=>, Status_enable=>)
+	CU: ControlUnit port map(clock=>clock, reset=>reset, status=>Data_Status, MFC=>MFC, IR=>Data_IR, RF_write=>RF_write, C_select=>C_select, B_select=>B_select, Y_select=>Y_select, ALU_op=>ALU_op, A_inv=>A_inv, B_inv=>B_inv, C_in=>C_in, MEM_read=>Mem_read, MEM_write=>Mem_write, MA_select=>MA_select, IR_enable=>IR_enable, PC_select=>PC_select, PC_enable=>PC_enable, INC_select=>INC_select, extend=>extend, Status_enable=>Status_enable);
+	
 	--RegisterFile RF
 
-			RF_write	: out std_logic;
-			C_select	: out std_logic_vector(1 downto 0);
-			B_select : out std_logic;
-			Y_select	: out std_logic_vector(1 downto 0);
-			ALU_op	: out std_logic_vector(1 downto 0);
-			A_inv		: out std_logic;
-			B_inv		: out std_logic;
-			C_in		: out std_logic;
-			MEM_read	: out std_logic;
-			MEM_write: out std_logic;
-			MA_select: out std_logic;
-			IR_enable: out std_logic;
-			PC_select: out std_logic_vector(1 downto 0);
-			PC_enable: out std_logic;
-			INC_select: out std_logic;
-			extend	: out std_logic_vector(2 downto 0);
-			Status_enable : out std_logic;
 	
 	
 	
