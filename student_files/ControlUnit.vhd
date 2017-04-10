@@ -106,12 +106,241 @@ begin
 		WMFC <= '0'; 
 
 		-- set output signals and WMFC for each instruction and each stage
+		
+		
+		if(current_state="001") then						--Stage 1 (Same for All)
+			MA_select<='1';									--
+			MEM_read<='1';										--
+			MEM_write<='0';									--
+			WMFC<='1';											--
+			if (MFC='1')then									--
+				IR_enable<='1';								--
+				PC_enable<='1';								--
+			end if;												--
+			Inc_select<='0';									--
+			PC_select<="01"									--
+		end if;													--Stage 1
+			
+		-- ADD R-TYPE	
+		if(OP_code="000")and (OPX="0000") then	
+			if (current_state="010") then					--Stage 2
+				else if (current_state="011") then 		--Stage 3
+				extend<="00";
+				B_select<='0';
+				ALU_op<="11";
+				A_inv<='0';
+				B_inv<='0';
+				C_in<='0';
+			end if;
+			if (current_state="100")then 					--Stage 4
+				Y_select<="00"
+			end if;
+			if (current_state="101")then 					--Stage 5
+				RF_write<='1';
+				C_select<="01";
+			end if;
+		end if;
+		
+		-- ADDI R-TYPE	
+		if(OP_code="011")then	
+			if (current_state="010") then					--Stage 2
+				else if (current_state="011") then 		--Stage 3
+				extend<="00";
+				B_select<='1';
+				ALU_op<="11";
+				A_inv<='0';
+				B_inv<='0';
+				C_in<='0';
+			end if;
+			if (current_state="100")then 					--Stage 4
+				Y_select<="00"
+			end if;
+			if (current_state="101")then 					--Stage 5
+				RF_write<='1';
+				C_select<="00";
+			end if;
+		end if;
+		
+		-- SUB R-TYPE
+		if(OP_code="000")and (OPX="0001") then	
+			if (current_state="010") then					--Stage 2
+				else if (current_state="011") then 		--Stage 3
+				extend<="00";
+				B_select<='0';
+				ALU_op<="11";
+				A_inv<='0';
+				B_inv<='1';
+				C_in<='1';
+			end if;
+			if (current_state="100")then 					--Stage 4
+				Y_select<="00"
+			end if;
+			if (current_state="101")then 					--Stage 5
+				RF_write<='1';
+				C_select<="01";
+			end if;
+		end if;
+		
+	-- AND R-TYPE
+		if(OP_code="000")and (OPX="0010") then	
+			if (current_state="010") then					--Stage 2
+				else if (current_state="011") then 		--Stage 3
+				extend<="00";
+				B_select<='0';
+				ALU_op<="00";
+				A_inv<='0';
+				B_inv<='0';
+				C_in<='0';
+			end if;
+			if (current_state="100")then 					--Stage 4
+				Y_select<="00"
+			end if;
+			if (current_state="101")then 					--Stage 5
+				RF_write<='1';
+				C_select<="01";
+			end if;
+		end if;
 
-
-
-
-
-
+-- OR R-TYPE	
+		if(OP_code="000")and (OPX="0011") then	
+			if (current_state="010") then					--Stage 2
+				else if (current_state="011") then 		--Stage 3
+				extend<="00";
+				B_select<='0';
+				ALU_op<="01";
+				A_inv<='0';
+				B_inv<='0';
+				C_in<='0';
+			end if;
+			if (current_state="100")then 					--Stage 4
+				Y_select<="00"
+			end if;
+			if (current_state="101")then 					--Stage 5
+				RF_write<='1';
+				C_select<="01";
+			end if;
+		end if;
+		
+		-- ORI I-TYPE	
+		if(OP_code="100") then	
+			if (current_state="010") then					--Stage 2
+				else if (current_state="011") then 		--Stage 3
+				extend<="01";
+				B_select<='1';
+				ALU_op<="01";
+				A_inv<='0';
+				B_inv<='0';
+				C_in<='0';
+			end if;
+			if (current_state="100")then 					--Stage 4
+				Y_select<="00"
+			end if;
+			if (current_state="101")then 					--Stage 5
+				RF_write<='1';
+				C_select<="00";
+			end if;
+		end if;
+		
+			-- ORHI I-TYPE	
+		if(OP_code="101") then	
+			if (current_state="010") then					--Stage 2
+				else if (current_state="011") then 		--Stage 3
+				extend<="10";
+				B_select<='1';
+				ALU_op<="01";
+				A_inv<='0';
+				B_inv<='0';
+				C_in<='0';
+			end if;
+			if (current_state="100")then 					--Stage 4
+				Y_select<="00"
+			end if;
+			if (current_state="101")then 					--Stage 5
+				RF_write<='1';
+				C_select<="00";
+			end if;
+		end if;
+		
+		-- XOR R-TYPE	
+		if(OP_code="000")and (OPX="0100") then	
+			if (current_state="010") then					--Stage 2
+				else if (current_state="011") then 		--Stage 3
+				extend<="00";
+				B_select<='0';
+				ALU_op<="10";
+				A_inv<='0';
+				B_inv<='0';
+				C_in<='0';
+			end if;
+			if (current_state="100")then 					--Stage 4
+				Y_select<="00" 
+			end if;
+			if (current_state="101")then 					--Stage 5
+				RF_write<='1';
+				C_select<="01";
+			end if;
+		end if;
+		
+		-- NAND R-TYPE	
+		if(OP_code="000")and (OPX="0101") then	
+			if (current_state="010") then					--Stage 2
+				else if (current_state="011") then 		--Stage 3
+				extend<="00";
+				B_select<='0';
+				ALU_op<="01";
+				A_inv<='1';
+				B_inv<='1';
+				C_in<='0';
+			end if;
+			if (current_state="100")then 					--Stage 4
+				Y_select<="00"
+			end if;
+			if (current_state="101")then 					--Stage 5
+				RF_write<='1';
+				C_select<="01";
+			end if;
+		end if;
+		
+		-- NOR R-TYPE	
+		if(OP_code="000")and (OPX="0110") then	
+			if (current_state="010") then					--Stage 2
+				else if (current_state="011") then 		--Stage 3
+				extend<="00";
+				B_select<='0';
+				ALU_op<="00";
+				A_inv<='1';
+				B_inv<='1';
+				C_in<='0';
+			end if;
+			if (current_state="100")then 					--Stage 4
+				Y_select<="00"
+			end if;
+			if (current_state="101")then 					--Stage 5
+				RF_write<='1';
+				C_select<="01";
+			end if;
+		end if;
+		
+		-- XNOR R-TYPE	
+		if(OP_code="000")and (OPX="0111") then	
+			if (current_state="010") then					--Stage 2
+				else if (current_state="011") then 		--Stage 3
+				extend<="00";
+				B_select<='0';
+				ALU_op<="10";
+				A_inv<='1';
+				B_inv<='0';
+				C_in<='0';
+			end if;
+			if (current_state="100")then 					--Stage 4
+				Y_select<="00"
+			end if;
+			if (current_state="101")then 					--Stage 5
+				RF_write<='1';
+				C_select<="01";
+			end if;
+		end if;
+		
 		
 	end process;
 	
