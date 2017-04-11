@@ -128,22 +128,6 @@ architecture implementation of SimpleProcessor is
 			input0, input1, input2, input3 : in  std_logic_vector(2 downto 0);
 			result : out std_logic_vector(2 downto 0));
 	end component;
-	component MemoryIOInterface is
-		port(
-			clock 		: in std_logic;
-			reset			: in std_logic;
-			MEM_read		: in std_logic;
-			MEM_write 	: in std_logic;
-			MFC			: out std_logic;
-			Address 		: in std_logic_vector(15 downto 0);
-			Data_in 		: in std_logic_vector(15 downto 0);
-			Data_out		: out std_logic_vector(15 downto 0);
-			LEDR 			: out std_logic_vector(9 downto 0);
-			LEDG 			: out std_logic_vector(7 downto 0);
-			SW 			: in std_logic_vector(9 downto 0);
-			KEY 			: in std_logic_vector(3 downto 1)
-		);
-	end component;
 
 	-- component data
 	signal Data_RFOutA,Data_RFOutB: std_logic_vector(15 downto 0);
@@ -174,6 +158,7 @@ architecture implementation of SimpleProcessor is
 	signal	INC_select: std_logic;
 	signal	extend	: std_logic_vector(2 downto 0);
 	signal	Status_enable : std_logic;
+	signal 	Status_input : std_logic_vector(15 downto 0);
 	-- add your interal signals below
 	
 	
@@ -186,25 +171,54 @@ begin
 	debug_Extension <= Data_Extension;
 	debug_RZ <= Data_RZ;
 	debug_RY <= Data_RY;
+	
+	Status_input(15 downto 4) <= "000000000000";
+	Status_input(3) <= N;
+	Status_input(2) <= C;
+	Status_input(1) <= V;
+	Status_input(0) <= Z;
 
 	-- Connect processor components below
 	
+	Stat: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Status_input, Q=>Data_status);
+	
+	IR: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Data_From_Mem, Q=>Data_IR);
 	--ControlUnit CU
-	CU: ControlUnit port map(clock=>clock, reset=>reset, status=>Data_Status, MFC=>MFC, IR=>Data_IR, RF_write=>RF_write, C_select=>C_select, B_select=>B_select, Y_select=>Y_select, ALU_op=>ALU_op, A_inv=>A_inv, B_inv=>B_inv, C_in=>C_in, MEM_read=>Mem_read, MEM_write=>Mem_write, MA_select=>MA_select, IR_enable=>IR_enable, PC_select=>PC_select, PC_enable=>PC_enable, INC_select=>INC_select, extend=>extend, Status_enable=>Status_enable);
+	CU: ControlUnit port map(clock=>clock, reset=>reset, status=>Data_Status, MFC=>MFC, IR=>Data_IR, RF_write=>RF_write, C_select=>C_select, B_select=>B_select, Y_select=>Y_select, ALU_op=>ALU_op, A_inv=>A_inv, B_inv=>B_inv, C_in=>C_in, MEM_read=>Mem_read, MEM_write=>Mem_write, MA_select=>MA_select, IR_enable=>IR_enable, PC_select=>PC_select, PC_enable=>PC_enable, INC_select=>INC_select, extend=>extend, Status_enable=>Status_enable, debug_state=>debug_state);
 
+	imm: Immediate port map(IR=>Data_IR, PC=>Data_PC, extend=>extend, extension=>Data_Extension);
+
+	--MuxINC
+	MuxINC: Mux2Input16Bit port map(s=>INC_select, input0=>"0000000000000001", input1=>Data_Extension, result=>Data_MuxInc);
+	
+	--Adder
+	Adder: Adder16Bit port map(X=>Data_MuxInc, Y=>Data_PC, C_in=>'0', S=>Data_Adder);
+	
+	--MuxPC
+	MuxPC: Mux4Input16Bit port map(s=>PC_select, input0=>Data_RA, input1=>Data_Adder, input2=>Data_Extension, input3=>"0000000000000000", result=>Data_MuxPC);
+	
+	--Reg to ouput PC
+	PCReg: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Data_MuxPC, Q=>Data_PC);
+	
+	PCTemp: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Data_PC, Q=>Data_PC_temp);
+	
+	MuxMA: Mux2Input16Bit port map(s=>MA_select, input0=>Data_RZ, input1=>Data_PC, result=>MEM_address);
+	
+	MuxY: Mux4Input16Bit port map(s=>Y_select, input0=>Data_RZ, input1=>Data_from_Mem, input2=>Data_PC_temp, input3=>"0000000000000000", result=>Data_MuxY);
+		
+	RYReg: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Data_MuxY, Q=>Data_RY);	
 	--MuxC
 	MuxC: Mux4Input3Bit port map(s=>C_select, input0=>Data_IR(12 downto 10), input1=>Data_IR(9 downto 7), input2=>"111", input3=>"000", result=>Data_MuxC);
 
 	--RegisterFile RF
-	RF: RegisterFile8by16Bit port map(clock=>clock, reset=>reset, RF_write=>RF_write, AddressA=>Data_IR(15 downto 13), AddressB=>Data_IR(12 downto 10), AddressC=>Data_MuxC, InputC=>Data_RY, OutputA=>Data_RFOutA, OutputB=>Data_RFOutB);
+	RF: RegisterFile8by16Bit port map(clock=>clock, reset=>reset, RF_write=>RF_write, AddressA=>Data_IR(15 downto 13), AddressB=>Data_IR(12 downto 10), AddressC=>Data_MuxC, InputC=>Data_RY, OutputA=>Data_RFOutA, OutputB=>Data_RFOutB,
+	debug_r1=>debug_r1, debug_r2=>debug_r2, debug_r3=>debug_r3, debug_r4=>debug_r4, debug_r5=>debug_r5, debug_r6=>debug_r6, debug_r7=>debug_r7);
 	
 	--Reg to output RA
 	RAReg: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Data_RFOutA, Q=>Data_RA);
 	
 	--Reg to output RB
 	RBReg: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Data_RFOutB, Q=>Data_RB);
-	
-	imm: Immediate port map(IR=>Data_IR, PC=>Data_PC_temp, extend=>extend, extension=>Data_Extension);
 
 	--MuxB to create one ALU input
 	MuxB: Mux2Input16Bit port map(s=>B_select, input0=>Data_RB, input1=>Data_Extension, result=>Data_MuxB);
@@ -217,23 +231,5 @@ begin
 
 	--Reg to output RM
 	RMReg: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Data_RB, Q=>Data_to_Mem);
-	
-	--MuxINC
-	MuxINC: Mux2Input16Bit port map(s=>INC_select, input0=>"0000000000000001", input1=>Data_Extension, result=>Data_MuxInc);
-	
-	--Adder
-	Adder: Adder16Bit port map(X=>Data_MuxInc, Y=>Data_pc_temp, C_in=>C_in, S=>Data_Adder);
-	
-	--MuxPC
-	MuxPC: Mux4Input16Bit port map(s=>PC_select, input0=>Data_Extension, input1=>Data_Adder, input2=>Data_RA, input3=>"0000000000000000", result=>Data_MuxPC);
-	
-	--Reg to ouput PC
-	PCReg: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Data_MuxPC, Q=>Data_PC);
-	
-	MuxMA: Mux2Input16Bit port map(s=>MA_select, input0=>Data_RZ, input1=>Data_PC, result=>MEM_address);
 
-	MuxY: Mux4Input16Bit port map(s=>Y_select, input0=>Data_RZ, input1=>Data_from_Mem, input2=>Data_PC_temp, input3=>"0000000000000000", result=>Data_MuxY);
-	
-	--Reg to output RM
-	RYReg: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Data_MuxY, Q=>Data_RY);
 end implementation;
