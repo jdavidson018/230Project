@@ -180,11 +180,15 @@ begin
 
 	-- Connect processor components below
 	
-	Stat: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Status_input, Q=>Data_status);
+	Stat: Reg16Bit port map(clock=>clock, reset=>reset, enable=>Status_enable, D=>Status_input, Q=>Data_status);
 	
-	IR: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Data_From_Mem, Q=>Data_IR);
+	IR: Reg16Bit port map(clock=>clock, reset=>reset, enable=>IR_enable, D=>Data_From_Mem, Q=>Data_IR);
 	--ControlUnit CU
-	CU: ControlUnit port map(clock=>clock, reset=>reset, status=>Data_Status, MFC=>MFC, IR=>Data_IR, RF_write=>RF_write, C_select=>C_select, B_select=>B_select, Y_select=>Y_select, ALU_op=>ALU_op, A_inv=>A_inv, B_inv=>B_inv, C_in=>C_in, MEM_read=>Mem_read, MEM_write=>Mem_write, MA_select=>MA_select, IR_enable=>IR_enable, PC_select=>PC_select, PC_enable=>PC_enable, INC_select=>INC_select, extend=>extend, Status_enable=>Status_enable, debug_state=>debug_state);
+	CU: ControlUnit port map(clock=>clock, reset=>reset, status=>Data_Status, MFC=>MFC, IR=>Data_IR, RF_write=>RF_write,
+										C_select=>C_select, B_select=>B_select, Y_select=>Y_select, ALU_op=>ALU_op, A_inv=>A_inv,
+										B_inv=>B_inv, C_in=>C_in, MEM_read=>Mem_read, MEM_write=>Mem_write, MA_select=>MA_select,
+										IR_enable=>IR_enable, PC_select=>PC_select, PC_enable=>PC_enable, INC_select=>INC_select,
+										extend=>extend, Status_enable=>Status_enable, debug_state=>debug_state);
 
 	imm: Immediate port map(IR=>Data_IR, PC=>Data_PC, extend=>extend, extension=>Data_Extension);
 
@@ -198,7 +202,7 @@ begin
 	MuxPC: Mux4Input16Bit port map(s=>PC_select, input0=>Data_RA, input1=>Data_Adder, input2=>Data_Extension, input3=>"0000000000000000", result=>Data_MuxPC);
 	
 	--Reg to ouput PC
-	PCReg: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Data_MuxPC, Q=>Data_PC);
+	PCReg: Reg16Bit port map(clock=>clock, reset=>reset, enable=>PC_enable, D=>Data_MuxPC, Q=>Data_PC);
 	
 	PCTemp: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Data_PC, Q=>Data_PC_temp);
 	
@@ -211,8 +215,10 @@ begin
 	MuxC: Mux4Input3Bit port map(s=>C_select, input0=>Data_IR(12 downto 10), input1=>Data_IR(9 downto 7), input2=>"111", input3=>"000", result=>Data_MuxC);
 
 	--RegisterFile RF
-	RF: RegisterFile8by16Bit port map(clock=>clock, reset=>reset, RF_write=>RF_write, AddressA=>Data_IR(15 downto 13), AddressB=>Data_IR(12 downto 10), AddressC=>Data_MuxC, InputC=>Data_RY, OutputA=>Data_RFOutA, OutputB=>Data_RFOutB,
-	debug_r1=>debug_r1, debug_r2=>debug_r2, debug_r3=>debug_r3, debug_r4=>debug_r4, debug_r5=>debug_r5, debug_r6=>debug_r6, debug_r7=>debug_r7);
+	RF: RegisterFile8by16Bit port map(clock=>clock, reset=>reset, RF_write=>RF_write, AddressA=>Data_IR(15 downto 13),
+													AddressB=>Data_IR(12 downto 10), AddressC=>Data_MuxC, InputC=>Data_RY,
+													OutputA=>Data_RFOutA, OutputB=>Data_RFOutB, debug_r1=>debug_r1, debug_r2=>debug_r2,
+													debug_r3=>debug_r3, debug_r4=>debug_r4, debug_r5=>debug_r5, debug_r6=>debug_r6, debug_r7=>debug_r7);
 	
 	--Reg to output RA
 	RAReg: Reg16Bit port map(clock=>clock, reset=>reset, enable=>'1', D=>Data_RFOutA, Q=>Data_RA);
